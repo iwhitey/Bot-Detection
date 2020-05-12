@@ -4,3 +4,4 @@ pandas
 sklearn
 nltk
 seaborn
+autopep8

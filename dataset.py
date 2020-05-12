@@ -21,7 +21,7 @@ class Dataset:
     test_labels_path: str (relative path to test labels 'truth.txt')
   """
 
-    def __init__(train_data_path, train_labels_path, test_data_path, test_labels_path):
+    def __init__(self, train_data_path, train_labels_path, test_data_path, test_labels_path):
 
         self.train_data_path = train_data_path
         self.train_labels_path = train_labels_path
