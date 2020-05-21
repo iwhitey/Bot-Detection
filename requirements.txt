@@ -5,3 +5,5 @@ sklearn
 nltk
 seaborn
 autopep8
+sentence-transformers
+spacy
