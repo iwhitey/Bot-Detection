@@ -1,3 +1,4 @@
+import pandas as pd
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
 import spacy
@@ -8,12 +9,11 @@ from collections import defaultdict
 import numpy as np
 
 model = SentenceTransformer('bert-base-nli-mean-tokens')
-dataset = Dataset(
-        Path("/home/ivanbilic/fer/tar/dataset/pan19-author-profiling-training-2019-02-18/en"),
-        Path("/home/ivanbilic/fer/tar/dataset/pan19-author-profiling-training-2019-02-18/en_labels/truth.txt"),
-        Path("/home/ivanbilic/fer/tar/dataset/pan19-author-profiling-test-2019-04-29/en"),
-        Path("/home/ivanbilic/fer/tar/dataset/pan19-author-profiling-test-2019-04-29/truth.txt"),
-    )
+dataset = Dataset(Path("/home/ianic/tar/pan19-author-profiling-training-2019-02-18/en"),
+  Path("/home/ianic/tar/pan19-author-profiling-training-2019-02-18/en_labels/truth.txt"),
+  Path("/home/ianic/tar/pan19-author-profiling-test-2019-04-29/en"),
+  Path("/home/ianic/tar/pan19-author-profiling-test-2019-04-29/truth.txt"))
+
 train_data, train_labels, test_data, test_labels = dataset.get_data()
 
 #rule based senencizer works better on our twitter data than the dependency parser based sentence segmentizer
@@ -68,6 +68,14 @@ for human in humans_keys:
 humans_diags = np.array(humans_diags); bots_diags = np.array(bots_diags)
 mean_bots_diag = np.mean(bots_diags, axis=0)
 mean_humans_diag = np.mean(humans_diags, axis=0)
+
+d = {'humans_diags': humans_diags, 
+     'mean_bots_diag': mean_bots_diag, 
+     'mean_humans_diag': mean_humans_diag
+}
+
+df = pd.DataFrame(d, columns=['humans_diags', 'mean_bots_diag', 'mean_humans_diag'])
+df_train.to_pickle("./pan19_df_sent_embed_var_means.pkl")
 
 print(f"BOTS MEAN DIAG VARIANCE: {mean_bots_diag}")
 print(f"HUMANS MEAN DIAG VARIANCE: {mean_humans_diag}")

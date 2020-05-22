@@ -82,12 +82,10 @@ def tokenize(text):
 
 if __name__ == '__main__':
     
-    dataset = Dataset(
-        Path("/home/ivanbilic/fer/tar/dataset/pan19-author-profiling-training-2019-02-18/en"),
-        Path("/home/ivanbilic/fer/tar/dataset/pan19-author-profiling-training-2019-02-18/en_labels/truth.txt"),
-        Path("/home/ivanbilic/fer/tar/dataset/pan19-author-profiling-test-2019-04-29/en"),
-        Path("/home/ivanbilic/fer/tar/dataset/pan19-author-profiling-test-2019-04-29/truth.txt"),
-    )
+    dataset = Dataset(Path("/home/ianic/tar/pan19-author-profiling-training-2019-02-18/en"),
+      Path("/home/ianic/tar/pan19-author-profiling-training-2019-02-18/en_labels/truth.txt"),
+      Path("/home/ianic/tar/pan19-author-profiling-test-2019-04-29/en"),
+      Path("/home/ianic/tar/pan19-author-profiling-test-2019-04-29/truth.txt"))
 
     xtrain, ytrain, xtest, ytest = dataset.get_data()
     d = {'author': [], 'tweet': [], 'bot': []}

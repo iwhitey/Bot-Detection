@@ -9,13 +9,15 @@ import numpy as np
 import json
 
 model = SentenceTransformer('bert-base-nli-mean-tokens')
-dataset = Dataset(
-        Path("/home/ivanbilic/fer/tar/dataset/pan19-author-profiling-training-2019-02-18/en"),
-        Path("/home/ivanbilic/fer/tar/dataset/pan19-author-profiling-training-2019-02-18/en_labels/truth.txt"),
-        Path("/home/ivanbilic/fer/tar/dataset/pan19-author-profiling-test-2019-04-29/en"),
-        Path("/home/ivanbilic/fer/tar/dataset/pan19-author-profiling-test-2019-04-29/truth.txt"),
-    )
+dataset = Dataset(Path("/home/ianic/tar/pan19-author-profiling-training-2019-02-18/en"),
+  Path("/home/ianic/tar/pan19-author-profiling-training-2019-02-18/en_labels/truth.txt"),
+  Path("/home/ianic/tar/pan19-author-profiling-test-2019-04-29/en"),
+  Path("/home/ianic/tar/pan19-author-profiling-test-2019-04-29/truth.txt"))
+
 train_data, train_labels, test_data, test_labels = dataset.get_data()
+
+print(len(train_data), len(train_labels))
+print(len(test_data), len(test_labels))
 
 nlp = English()  # just the language with no model
 sentencizer = nlp.create_pipe("sentencizer")
