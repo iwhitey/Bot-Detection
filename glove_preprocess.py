@@ -31,6 +31,9 @@ import regex as re
 
 FLAGS = re.MULTILINE | re.DOTALL
 
+tokenizer = TweetTokenizer()
+counter = 0
+
 def hashtag(text):
     text = text.group()
     hashtag_body = text[1:]
@@ -46,6 +49,9 @@ def allcaps(text):
 
 
 def tokenize(text):
+    global counter
+    print(counter)
+    counter += 1
     # Different regex parts for smiley faces
     eyes = r"[8:=;]"
     nose = r"['`\-]?"
@@ -77,8 +83,12 @@ def tokenize(text):
     text = re_sub(r"\(([a-zA-Z<>]+)\)", r"( \1 )")
     text = re_sub(r"  ", r" ")
     text = re_sub(r" ([A-Z]){2,} ", allcaps)
-    
-    return text.lower()
+    text = text.lower()
+
+    tokenized = tokenizer.tokenize(text)
+    tokenized = ['<rt>' if token == 'rt' else token for token in tokenized]
+    tokenized = [token for token in tokenized if not token in stopwords.words('english')]
+    return tokenized
 
 if __name__ == '__main__':
     

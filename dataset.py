@@ -1,7 +1,11 @@
 import xml.etree.ElementTree as ElementTree
 from pathlib import Path
-import sys, os, IPython
+import sys, os, IPython, ijson
 from itertools import zip_longest
+
+import torch.utils.data 
+import torch
+from torch.nn.utils.rnn import pad_sequence
 
 # from nltk.tokenize import sent_tokenize, word_tokenize
 # import spacy
@@ -69,6 +73,72 @@ class Dataset:
 
         return train_data, train_labels, test_data, test_labels
 
+
+class DatasetPyTorch(torch.utils.data.Dataset):
+
+    embedding_size = 0
+
+    def __init__(self, dataset, embeddings, embedding_source='glove'):
+        super(DatasetPyTorch, self).__init__()
+        self.dataset = dataset
+        self.embeddings = embeddings
+        self.embedding_source = embedding_source
+        DatasetPyTorch.embedding_size = 49 if embedding_source == 'glove' else 768
+
+    def __getitem__(self, index):
+        if self.embedding_source == 'glove':
+            tweet_tokens = self.dataset['clean_tweet'][index]
+            tweet_embedding = torch.zeros(len(tweet_tokens), DatasetPyTorch.embedding_size)
+            for i in range(tweet_embedding.size()[0]):
+                tweet_embedding[i] = self.embeddings.get(tweet_tokens[i], self.embeddings['<UNK>'])
+            #tweet_embedding = torch.as_tensor([self.embeddings.get(token, self.embeddings['<UNK>']) for token in tweet_tokens])
+            label = torch.Tensor([1.]) if self.dataset['bot'][index] == "bot" else torch.Tensor([0.])
+            return (tweet_embedding, label)
+        else:
+            account = self.dataset['author'][index]
+            account_index_first = self.dataset[self.dataset.author == account].index[0]
+            #print(account_index_first); 
+            tweet_embedding_index = index - account_index_first
+            print(f"tweet_embedding_index: {tweet_embedding_index}")
+            with open(self.embeddings, 'r') as f:
+                #print("FILE OPENED")
+                objects = ijson.items(f, f"{account}.item")
+                objects = list(objects); print(objects[0])
+                cnt = 0
+                for tweet in objects:
+                    #print(cnt)
+                    if cnt != tweet_embedding_index: cnt += 1; continue
+                    tweet_embedding = torch.as_tensor([float(x) for x in tweet])
+                    label = torch.Tensor([1.]) if self.dataset['bot'][index] == "bot" else torch.Tensor([0.])
+                    break
+            return (tweet_embedding, label)
+        #print(tweet); print(len(tweet))
+
+
+    
+    def __len__(self):
+        return len(self.dataset)
+
+
+def collate_fn(batch):
+    """
+    Arguments:
+      Batch:
+        list of Instances returned by `Dataset.__getitem__`.
+    Returns:
+      A tensor representing the input batch.
+    """
+
+    tweets, labels = zip(*batch) # Assuming the instance is in tuple-like form
+    lengths = torch.tensor([len(text) for text in tweets]) # Needed for later
+    #print(texts); print(labels); print(lengths)
+    #print(type(tweets[0][0])); print(len(tweets[0][0]))
+    padded_tweets = pad_sequence(tweets, batch_first=True, padding_value=0)
+    labels = torch.as_tensor(labels)
+    #labels = torch.Tensor(labels)
+    #print(padded_texts)
+    # Process the text instances
+    return padded_tweets, labels, lengths
 
 if __name__ == "__main__":
 
