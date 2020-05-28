@@ -5,5 +5,5 @@ sklearn
 nltk
 seaborn
 autopep8
-poorly
+plotly
 sentence-transformers
