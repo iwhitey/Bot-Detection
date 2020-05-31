@@ -66,20 +66,20 @@ torch.manual_seed(7052020)
 np.random.seed(7052020)
 
 ########################## choose embeddings ##########################
-# embedding_source = 'glove'
-# embeddings = Glove(glove_path).glove_dict
-embedding_source = 'bert'
-embeddings = Path('/home/ivanbilic/fer/tar/dataset/bert_embeddings_train.json')
+embedding_source = 'glove'
+embeddings = Glove(glove_path).glove_dict
+# embedding_source = 'bert'
+# embeddings = Path('/home/ivanbilic/fer/tar/dataset/bert_embeddings_train.json')
 #print(len(embeddings)); print(embeddings['<user>']); print(type(embeddings['<user>'])); print(embeddings['<user>'].size()); 
 
 train_dataset = DatasetPyTorch(dataset=df_train, embeddings=embeddings, embedding_source=embedding_source)
 bert_valid_dataset = DatasetPyTorch(dataset=df_train[:500], embeddings=embeddings, embedding_source=embedding_source)
-#test_dataset = DatasetPyTorch(dataset=df_test, embeddings=embeddings, embedding_source=embedding_source)
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True, num_workers=0, collate_fn=collate_fn, drop_last=True)
-bert_valid_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True, num_workers=0, collate_fn=collate_fn, drop_last=True)
-#test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size_test, shuffle=True, num_workers=2, collate_fn=collate_fn, drop_last=True)
+test_dataset = DatasetPyTorch(dataset=df_test, embeddings=embeddings, embedding_source=embedding_source)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True, num_workers=0, collate_fn=collate_fn, drop_last=False)
+bert_valid_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True, num_workers=0, collate_fn=collate_fn, drop_last=False)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size_test, shuffle=True, num_workers=2, collate_fn=collate_fn, drop_last=False)
 
-model = RNNModel(cell_type='rnn', embedding_size=DatasetPyTorch.embedding_size, num_layers=2, bidirectional=False, dropout_prob=0)
+model = RNNModel(cell_type='lstm', embedding_size=DatasetPyTorch.embedding_size, num_layers=2, bidirectional=False, dropout_prob=0)
 criterion = torch.nn.BCEWithLogitsLoss()
 optimizer = Adam(model.parameters(), lr=lr)
 
@@ -91,7 +91,7 @@ for epoch in range(num_epoch):
     batch_index = 0
     while batch_index < num_train_batches:
         data, labels, lengths = train_iter.next()
-        if batch_index % 1 == 0: print(batch_index)
+        if batch_index % 1000 == 0: print(batch_index)
         #print(len(data), len(data[0]), len(data[-1]))
         #print(labels)
         #IPython.embed()
@@ -110,9 +110,9 @@ for epoch in range(num_epoch):
         print(f"epoch: {epoch}, loss_avg: {np.mean(loss_avg)}, acc: {accuracy}, recall: {recall}, precision: {precision}, f1: {f1}")
 
 
-#preds, ground_truth, loss_avg = evaluate_rnn(model, criterion, optimizer, test_loader)
-#accuracy, recall, precision, f1 = eval_perf_binary(preds, ground_truth)
-#print(f"test accuracy {accuracy}")
+preds, ground_truth, loss_avg = evaluate_rnn(model, criterion, optimizer, test_loader)
+accuracy, recall, precision, f1 = eval_perf_binary(preds, ground_truth)
+print(f"test accuracy {accuracy}, f1: {f1}, recall: {recall}, precision: {precision}")
 
 
 
