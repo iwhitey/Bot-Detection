@@ -109,6 +109,7 @@ print(f"loading data: {time() - _time}")
 model = RNNModel(
     cell_type='lstm', embedding_size=DatasetPyTorch.embedding_size, 
     num_layers=3, bidirectional=False, dropout_prob=0)
+
 criterion = torch.nn.BCEWithLogitsLoss()
 optimizer = Adam(model.parameters(), lr=lr)
 print("training")
@@ -120,15 +121,6 @@ train_losses = []
 avg_train_losses = []
 # to track the average devation loss per epoch as the model trains
 avg_dev_losses = [] 
-
-test_dataset = DatasetPyTorch(
-    dataset=df_test, embeddings=embeddings, 
-    embedding_source=embedding_source)
-test_loader = torch.utils.data.DataLoader(
-    test_dataset, batch_size=batch_size_test, 
-    shuffle=True, num_workers=32,
-    drop_last=False, 
-    collate_fn=collate_fn)
 
 for epoch in range(num_epoch):
     _time = time()
@@ -176,7 +168,7 @@ test_dataset = DatasetPyTorch(
     embedding_source=embedding_source)
 test_loader = torch.utils.data.DataLoader(
     test_dataset, batch_size=batch_size_test, 
-    shuffle=True, num_workers=100,
+    shuffle=True, num_workers=32,
     drop_last=False, 
     collate_fn=collate_fn)
 
@@ -188,95 +180,6 @@ print(f"epochs: {num_epoch}, total execution time:{time() - _time_start}, "
       f"loss_avg: {np.mean(loss_avg)}, acc: {accuracy}, "
       f"recall: {recall}, precision: {precision}, f1: {f1}")
 
-print("no rnn, glove 200")
+print("lstm, glove 50")
 print(avg_train_losses)
 print(avg_dev_losses)
-
-# =====
-# glove_path = Path('/home/ianic/tar/Bot-Detection/glove/glove.twitter.27B.50d.txt')
-# # bert_path = Path('/home/ivanbilic/fer/tar/dataset/bert_embeddings_train.json')
-# # import ijson
-# # for prefix, the_type, value in ijson.parse(open(bert_path)):
-# #     print (prefix, the_type, value)
-
-# # with open(bert_path, 'r') as f:
-#     # objects = ijson.items(f, "7fbb9ceb600ebc6fcadc9ee235cda580.item")
-#     # cnt = 0
-#     #tweet = [tweet for idx, tweet in enumerate(objects) if idx == 90]
-#     #print(tweet)
-#     # for tweet in objects:
-#         # if cnt != 90: print(cnt); cnt += 1; continue
-#         # tweet = [float(x) for x in tweet]
-#         # break
-# # print(tweet); print(len(tweet))
-        
-
-
-# df_train = pd.read_pickle("/home/ianic/tar/Bot-Detection/pan19_df_clean_train_glove.pkl")
-# df_test = pd.read_pickle("/home/ianic/tar/Bot-Detection/pan19_df_clean_test_glove.pkl")
-# print(type(df_train['clean_tweet'][0])); print(df_train['clean_tweet'][0]); print(len(df_train)); print(df_train['bot'][0])
-
-# ######## extra preproc: stopwords, <rt>, lemmas #########
-# # tokenizer = TweetTokenizer()
-# #lemmatizer = WordNetLemmatizer() 
-# # for i in range(len(df_train['clean_tweet'])):
-#     # type(df_train['clean_tweet'][i])
-#     #print(i)
-#     #tokenized = tokenizer.tokenize(df_train['clean_tweet'][i])
-#     # tokenized = ['<rt>' if token == 'rt' else token for token in tokenized] ##add <rt> token since it exists in glove
-#     #tokenized = [token for token in tokenized if not token in stopwords.words('english')] ##remove stopwords
-#     #print(tokenized)
-#     #tokenized = list(map(lambda x : lemmatizer.lemmatize(x), tokenized))
-
-# lr=1e-4; num_epoch=5; batch_size_train = 64; batch_size_test = 32; gradient_clip=0.25
-# torch.manual_seed(7052020)
-# np.random.seed(7052020)
-
-# ########################## choose embeddings ##########################
-# embedding_source = 'glove'
-# embeddings = Glove(glove_path).glove_dict
-# #print(len(embeddings)); print(embeddings['<user>']); print(type(embeddings['<user>'])); print(embeddings['<user>'].size()); 
-
-# train_dataset = DatasetPyTorch(dataset=df_train, embeddings=embeddings, embedding_source=embedding_source)
-# bert_valid_dataset = DatasetPyTorch(dataset=df_train[:500], embeddings=embeddings, embedding_source=embedding_source)
-# #test_dataset = DatasetPyTorch(dataset=df_test, embeddings=embeddings, embedding_source=embedding_source)
-# train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True, num_workers=64, collate_fn=collate_fn, drop_last=True, pin_memory=True)
-# bert_valid_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True, num_workers=64, collate_fn=collate_fn, drop_last=True, pin_memory=True)
-# #test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size_test, shuffle=True, num_workers=2, collate_fn=collate_fn, drop_last=True)
-
-# model = RNNModel(cell_type='rnn', embedding_size=DatasetPyTorch.embedding_size, num_layers=2, bidirectional=False, dropout_prob=0)
-# criterion = torch.nn.BCEWithLogitsLoss()
-# optimizer = Adam(model.parameters(), lr=lr)
-# model = model.to(device)
-# for epoch in range(num_epoch):
-#     model.train()
-#     train_iter = iter(train_loader)
-#     num_train_batches = len(train_iter)
-#     print(num_train_batches)
-#     batch_index = 0
-#     while batch_index < num_train_batches:
-#         data, labels, lengths = train_iter.next()
-#         data = data.to(device, non_blocking=True)
-#         labels = labels.to(device, non_blocking=True)
-#         if batch_index % 1 == 0: print(batch_index)
-#         #print(len(data), len(data[0]), len(data[-1]))
-#         #print(labels)
-#         #IPython.embed()
-#         #sys.exit()
-#         data = torch.transpose(data, 0, 1) #time-first format, speed gain
-#         logits = model(data)
-#         loss = criterion(logits, labels)
-#         model.zero_grad()
-#         loss.backward()
-#         torch.nn.utils.clip_grad_norm_(model.parameters(), gradient_clip)
-#         optimizer.step()
-#         batch_index += 1
-#     if epoch % 1 == 0:
-#         preds, ground_truth, loss_avg = evaluate_rnn(model, criterion, optimizer, bert_valid_loader)
-#         accuracy, recall, precision, f1 = eval_perf_binary(preds, ground_truth)
-#         print(f"epoch: {epoch}, loss_avg: {np.mean(loss_avg)}, acc: {accuracy}, recall: {recall}, precision: {precision}, f1: {f1}")
-
-
-# #preds, ground_truth, loss_avg = evaluate_rnn(model, criterion, optimizer, test_loader)
-# #accuracy, recall, precision, f1 = eval_perf_binary(preds, ground_truth)
-# #print(f"test accuracy {accuracy}")
