@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ElementTree
 from pathlib import Path
-import sys, os, IPython, ijson
+import sys, os, IPython
 from itertools import zip_longest
 
 import torch.utils.data 
@@ -97,24 +97,16 @@ class DatasetPyTorch(torch.utils.data.Dataset):
         else:
             account = self.dataset['author'][index]
             account_index_first = self.dataset[self.dataset.author == account].index[0]
-            #print(account_index_first); 
             tweet_embedding_index = index - account_index_first
-            print(f"tweet_embedding_index: {tweet_embedding_index}")
-            with open(self.embeddings, 'r') as f:
-                #print("FILE OPENED")
-                objects = ijson.items(f, f"{account}.item")
-                objects = list(objects); print(objects[0])
-                cnt = 0
-                for tweet in objects:
-                    #print(cnt)
-                    if cnt != tweet_embedding_index: cnt += 1; continue
-                    tweet_embedding = torch.as_tensor([float(x) for x in tweet])
-                    label = torch.Tensor([1.]) if self.dataset['bot'][index] == "bot" else torch.Tensor([0.])
-                    break
+
+            objects = self.embeddings[account]
+            objects = list(objects)
+            tweet = objects[tweet_embedding_index] # 1, 768
+
+            tweet_embedding = torch.as_tensor([float(x) for x in tweet])
+            label = torch.Tensor([1.]) if self.dataset['bot'][index] == "bot" else torch.Tensor([0.])
+            tweet_embedding = torch.unsqueeze(tweet_embedding, 0)
             return (tweet_embedding, label)
-        #print(tweet); print(len(tweet))
-
-
     
     def __len__(self):
         return len(self.dataset)
@@ -138,20 +130,20 @@ def collate_fn(batch):
     #labels = torch.Tensor(labels)
     #print(padded_texts)
     # Process the text instances
-    return padded_tweets, labels, lengths
+    return padded_tweets, labels
 
 if __name__ == "__main__":
 
     ds = Dataset(
         Path(
-            "/Users/ianic/Documents/pan19/pan19-author-profiling-training-2019-02-18/en"
+            "/users/ianic/tar/pan19/pan19-author-profiling-training-2019-02-18/en"
         ),
         Path(
-            "/Users/ianic/Documents/pan19/pan19-author-profiling-training-2019-02-18/en_labels/truth.txt"
+            "/users/ianic/tar/pan19/pan19-author-profiling-training-2019-02-18/en_labels/truth.txt"
         ),
-        Path("/Users/ianic/Documents/pan19/pan19-author-profiling-test-2019-04-29/en"),
+        Path("/users/ianic/tar/pan19/pan19-author-profiling-test-2019-04-29/en"),
         Path(
-            "/Users/ianic/Documents/pan19/pan19-author-profiling-test-2019-04-29/truth.txt"
+            "/users/ianic/tar/pan19/pan19-author-profiling-test-2019-04-29/truth.txt"
         ),
     )
     a, b, c, d = ds.get_data()
